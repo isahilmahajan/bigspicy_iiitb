@@ -8,7 +8,11 @@ This repository shows the steps for merging the SPEF, verilog and spice netlist 
 In this repo, the design of 4 bit bidirectional counter is implemented using SKY130 PDKS. The RTL to GDS2 flow of the given design can be referred from the following github repo.
 <br> https://github.com/isahilmahajan/iiitb_4bbc.git
 
+## Flowchart
+![image](https://user-images.githubusercontent.com/110079689/200117467-c5c6d165-5011-4002-9b82-d756f3bbd48d.png)
+
 ## Pre-Requisites
+### (i) Python
 We need to install some python dependencies, for that follow the below steps
 ```
 git clone https://github.com/isahilmahajan/bigspicy_iiitb.git
@@ -18,6 +22,7 @@ pip install -e ".[dev]"
 pip install -r requirements.txt
 sudo apt install -y protobuf-compiler iverilog
 ```
+### (ii) Protoc
 Another prerequisite for this step is to compile protobufs into python file.(_pb2.py).
 To compile the protobufs, type the below command in terminal in the BigSpicy(cloned_repo) directory:
 ```
@@ -26,10 +31,7 @@ protoc --proto_path vlsir vlsir/*.proto vlsir/*/*.proto --python_out=.
 protoc proto/*.proto --python_out=.
 ```
 
-## Flowchart
-![image](https://user-images.githubusercontent.com/110079689/200117467-c5c6d165-5011-4002-9b82-d756f3bbd48d.png)
-
-## XDM- File Conversion to Xyce format
+### (iii) XDM- File Conversion to Xyce format
 Primitives and spice files are needed by BigSpicy but they are not processed in their raw format. The files that are fed to BigSpicy should be in Xyce format as minimal internal processing is required for them. 
 <br>XDM can be installed from the below link
 <br>https://github.com/Xyce/XDM
