@@ -1,3 +1,135 @@
+# bigspicy
+
+`bigspicy` is a tool for merging circuit descriptions (netlists), generating Spice decks modeling those circuits, generating Spice tests to measure those models, and analyzing the results of running Spice on those tests.
+
+`bigspicy` allows you to combine structural Verilog from a PDK, Spice models of standard cells, a structural Verilog model of some circuit implemented in that PDK, and parasitics extracted into SPEF format. You can then reason about the electrical structure of the design however you want.
+
+`bigspicy` generates Spice decks in `Xyce` format, though this can be extended to other Spice dialects.
+
+## 4-Bit Bidirectional Counter
+This repository shows the steps for merging the SPEF, verilog and spice netlist into a circuit protobuf and generating the spice file of the design which can further be used to perform various tests and analysis. In this repo, the design of 4 bit bidirectional counter is implemented using SKY130 PDKS. The RTL to GDS2 flow of the given design can be referred from the following github repo.
+<br> https://github.com/isahilmahajan/iiitb_4bbc.git
+
+## Prerequisites
+- The protocol buffer compiler `protoc` 
+- Icarus Verilog
+- Xyce
+- python3
+  - pyverilog
+  - numpy
+  - matplotlib
+  - protobuf
+
+## Flowchart
+![image](https://user-images.githubusercontent.com/110079689/200117467-c5c6d165-5011-4002-9b82-d756f3bbd48d.png)
+
+### Python Dependencies Installation
+We need to install some python dependencies, for that follow the below steps
+```
+git clone https://github.com/isahilmahajan/bigspicy_iiitb.git
+cd BigSpicy/
+sudo apt-get update
+pip install -e ".[dev]"
+pip install -r requirements.txt
+sudo apt install -y protobuf-compiler iverilog
+```
+
+### Set up Xyce
+
+Install the 'Serial' or 'Parallel' versions of Xyce. Follow the
+[Xyce Building Guide](https://xyce.sandia.gov/documentation/BuildingGuide.html).
+
+### Set up XDM
+
+[XDM](https://github.com/Xyce/XDM) is needed to prepare Spice netlists generated
+for common proprietary Spice engines for use with `Xyce`. It is only needed to
+prepare the input libraries used by `bigspicy`, and only once for each corner in
+the PDK.
+
+Follow the XDM [installation instructions](https://github.com/Xyce/XDM) on their
+GitHub clone. If existing XDM-translated libraries are available, you can skip
+this step.
+
+## Compile protos and prepare PDK models
+
+### Generating SPICE library files
+
+Spice files fed to `bigspicy` should be in `Xyce` format because `bigspicy` does
+minimal internal processing of the files and will include them almost verbatim.
+These files are in turn read directly into Xyce.
+That means that any PDK Spice files you receive should be converted to `Xyce`'s
+spice dialect. The `xdm_bdl` tool (XDM) can usually do this for you, though
+in some cases you will need to interfere by hand :(
+
+To convert the PDK's go to the directory where XDM is installed and type the following command:
+```
+xdm_bdl -s hspice "path to the pdk"/"file to be converted" -d lib
+xdm_bdl -s hspice ${HOME}/src/asap7sc7p5t_27/CDL/xAct3D_extracted/asap7sc7p5t_27_R.sp -d lib
+```
+
+### Compile protobufs
+Another prerequisite for this step is to compile protobufs into python file.(_pb2.py).
+To compile the protobufs, type the below command in terminal in the BigSpicy(cloned_repo) directory:
+
+```
+git submodule update --init   
+protoc --proto_path vlsir vlsir/*.proto vlsir/*/*.proto --python_out=.
+protoc proto/*.proto --python_out=.
+```
+
+## Usage
+
+
+### Merge SPEF, Verilog and Spice information into Circuit protobuf
+
+In addition to some circuit definition, in order to generate a Spice deck the
+order of ports for each instantiated module are also required. When relying on
+PDK cells, that usually means providing the PDK spice models as a header.
+
+We merge the files into circuit protobuf(final.pb) which is used to generate the whole module spice models  and to conduct the various tests using Xyce.
+To merge the files, follow the below steps in the BigSpicy directory:
+
+```
+./bigspicy.py \
+   --import \
+   --spef example_inputs/iiitb_4bbc/iiitb_4bbc.spef
+   --spice lib/sky130_fd_sc_hd.spice \
+   --verilog example_inputs/iiitb_4bbc/iiitb_4bbc.v\
+   --spice_header lib/sky130_fd_pr__pfet_01v8.pm3.spice \
+   --spice_header lib/sky130_fd_pr__nfet_01v8.pm3.spice \
+   --spice_header lib/sky130_ef_sc_hd__decap_12.spice \
+   --spice_header lib/sky130_fd_pr__pfet_01v8_hvt.pm3.spice \
+   --top iiitb_4bbc \
+   --save final.pb \
+```
+
+The above steps will generate final.pb file. To specify the location of the final.pb file, go to bigspicy.py file and search for "def withoptions()" function. Change the "output_dir" variable to your desired path.
+
+### Generate whole-module Spice model
+
+After generating the "final.pb" file, we now generate the spice file("spice.sp" in this case) for our design which can be further used to run tests.
+This step takes the pdks, and the design as input and gives the spice file as output.
+To generate the spice file, follow the below steps in BigSpicy directory:
+```
+./bigspicy.py --import \
+    --verilog example_inputs/iiitb_4bbc/iiitb_4bbc.v \
+    --spice lib/sky130_fd_sc_hd.spice \
+    --spice_header lib/sky130_fd_pr__pfet_01v8.pm3.spice \
+    --spice_header lib/sky130_fd_pr__nfet_01v8.pm3.spice \
+    --spice_header lib/sky130_ef_sc_hd__decap_12.spice \
+    --spice_header lib/sky130_fd_pr__pfet_01v8_hvt.pm3.spice \
+    --save final.pb \
+    --top iiitb_4bbc \
+    --flatten_spice --dump_spice spice.sp
+```
+The above steps will generate "spice.sp" file in the mentioned directory.
+
+### Future Works
+Presently we are working on performing tests on the generated spice file "spice.sp".
+We are trying to find the path delay for few paths using Xyce and compare the same with other available tools.
+We expect this to be a lot faster method for timing analysis than the other tools available now.
+
+
 ## Introduction
 
 BigSpicy is a tool for merging circuit descriptions (netlists), generating Spice decks modeling those circuits, generating Spice tests to measure those models, and analyzing the results of running Spice on those tests. Bigspicy allows you to combine structural Verilog from a PDK, Spice models of standard cells, a structural Verilog model of some circuit implemented in that PDK, and parasitics extracted into SPEF format. You can then reason about the electrical structure of the design however you want. Bigspicy generates Spice decks in Xyce format, though this can (and should) be extended to other 
