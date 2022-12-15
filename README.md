@@ -241,6 +241,7 @@ We have currently generated the "final.pb" and "spice.sp" files. The next steps 
 -->
 
 ### Acknowledgement 
-- Kunal Ghosh, VSD Corp. Pvt. Ltd. 
-- Madhav Rao, Professor, IIIT Bangalore
-- Nanditha Rao, Professor, IIIT Bangalore
+- Kunal Ghosh, VSD Corp. Pvt. Ltd
+- Arya Reais-Parsi, PhD Candidate at University of California, Berkeley
+- Dr. Madhav Rao, Professor, IIIT Bangalore
+- Dr. Nanditha Rao, Professor, IIIT Bangalore
