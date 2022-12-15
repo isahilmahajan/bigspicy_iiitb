@@ -10,6 +10,9 @@
 This repository shows the steps for merging the SPEF, verilog and spice netlist into a circuit protobuf and generating the spice file of the design which can further be used to perform various tests and analysis. In this repo, the design of 4 bit bidirectional counter is implemented using SKY130 PDKS. The RTL to GDS2 flow of the given design can be referred from the following github repo.
 <br> https://github.com/isahilmahajan/iiitb_4bbc.git
 
+## Flowchart
+![image](https://user-images.githubusercontent.com/110079689/200117467-c5c6d165-5011-4002-9b82-d756f3bbd48d.png)
+
 ## Prerequisites
 - The protocol buffer compiler `protoc` 
 - Icarus Verilog
@@ -19,9 +22,6 @@ This repository shows the steps for merging the SPEF, verilog and spice netlist 
   - numpy
   - matplotlib
   - protobuf
-
-## Flowchart
-![image](https://user-images.githubusercontent.com/110079689/200117467-c5c6d165-5011-4002-9b82-d756f3bbd48d.png)
 
 ### Python Dependencies Installation
 We need to install some python dependencies, for that follow the below steps
